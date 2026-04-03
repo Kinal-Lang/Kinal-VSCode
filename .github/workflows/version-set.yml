@@ -37,8 +37,8 @@ jobs:
       - name: Set version
         shell: bash
         run: |
-          python build.py version set "${{ inputs.version }}"
-          echo "VERSION=$(python build.py version get)" >> "$GITHUB_ENV"
+          VERSION="$(python build.py version set "${{ inputs.version }}" | tail -n 1)"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Commit and push
         shell: bash

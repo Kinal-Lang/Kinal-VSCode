@@ -42,7 +42,7 @@ jobs:
       - name: Bump version
         shell: bash
         run: |
-          VERSION="$(python build.py version bump "${{ inputs.part }}")"
+          VERSION="$(python build.py version bump "${{ inputs.part }}" | tail -n 1)"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Commit and push

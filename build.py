@@ -39,7 +39,7 @@ def read_version() -> str:
     return str(read_json(PACKAGE_JSON)["version"])
 
 
-def set_version(version: str) -> None:
+def set_version(version: str) -> str:
     parts = version.split(".")
     if len(parts) != 3 or not all(p.isdigit() for p in parts):
         raise SystemExit(f"invalid version '{version}', expected x.y.z")
@@ -56,7 +56,7 @@ def set_version(version: str) -> None:
             packages[""]["version"] = version
         write_json(PACKAGE_LOCK_JSON, lock_data)
 
-    print(f"[OK] version set to {version}")
+    return version
 
 
 def bump_version(kind: str) -> str:
@@ -161,7 +161,7 @@ def cmd_version_get(_: argparse.Namespace) -> int:
 
 
 def cmd_version_set(args: argparse.Namespace) -> int:
-    set_version(args.version)
+    print(set_version(args.version))
     return 0
 
 
