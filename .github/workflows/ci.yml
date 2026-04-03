@@ -37,6 +37,9 @@ jobs:
       - name: Compile extension
         run: python build.py compile
 
+      - name: Smoke test
+        run: python build.py test
+
       - name: Package VSIX
         run: python build.py package
 
@@ -44,6 +47,8 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: kinal-vscode-vsix
-          path: dist/*.vsix
+          path: |
+            dist/*.vsix
+            dist/SHA256SUMS-*.txt
           if-no-files-found: error
 

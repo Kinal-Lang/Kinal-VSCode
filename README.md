@@ -26,10 +26,12 @@ Repository:
 ```powershell
 python build.py deps
 python build.py compile
+python build.py test
 python build.py package --clean
 ```
 
 The generated VSIX is written to `dist/`.
+Packaging also writes a SHA-256 checksum file to `dist/`.
 
 ## Version
 
@@ -46,4 +48,5 @@ python build.py version bump major
 - `Version Get`: print the current version to the workflow summary.
 - `Version Set`: set an exact `x.y.z` version, commit it, and push to `main`.
 - `Version Bump`: bump `patch`, `minor`, or `major`, commit it, and push to `main`.
-- `Release`: build the VSIX, create or update a tag, and publish a GitHub Release with optional markdown release notes.
+- `Release`: run smoke checks, create a new tag by default, build the VSIX, write SHA-256 hashes, and publish a GitHub Release with optional markdown release notes.
+  Retagging is blocked unless you explicitly enable `allow_retag`.

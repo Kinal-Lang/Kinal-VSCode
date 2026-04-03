@@ -16,6 +16,11 @@ on:
         required: false
         default: false
         type: boolean
+      allow_retag:
+        description: "Allow overwriting an existing tag"
+        required: false
+        default: false
+        type: boolean
       release_notes:
         description: "Optional markdown release notes body"
         required: false
@@ -48,12 +53,38 @@ jobs:
           node-version: "22"
           cache: "npm"
 
+      - name: Check tag state
+        env:
+          TAG_NAME: ${{ inputs.tag }}
+          ALLOW_RETAG: ${{ inputs.allow_retag }}
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG_NAME" >/dev/null 2>&1; then
+            if [ "$ALLOW_RETAG" = "true" ]; then
+              echo "Tag $TAG_NAME already exists and will be replaced."
+              echo "TAG_EXISTS=true" >> "$GITHUB_ENV"
+            else
+              echo "Tag $TAG_NAME already exists. Refusing to overwrite."
+              exit 1
+            fi
+          else
+            echo "TAG_EXISTS=false" >> "$GITHUB_ENV"
+          fi
+
       - name: Configure Git identity
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Create or update tag
+      - name: Create tag
+        if: env.TAG_EXISTS == 'false'
+        env:
+          TAG_NAME: ${{ inputs.tag }}
+        run: |
+          git tag "$TAG_NAME"
+          git push origin "$TAG_NAME"
+
+      - name: Force retag
+        if: env.TAG_EXISTS == 'true'
         env:
           TAG_NAME: ${{ inputs.tag }}
         run: |
@@ -63,11 +94,16 @@ jobs:
       - name: Build VSIX
         run: python build.py package --clean
 
+      - name: Smoke test
+        run: python build.py test
+
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v5
         with:
           name: kinal-vscode-vsix-${{ inputs.tag }}
-          path: dist/*.vsix
+          path: |
+            dist/*.vsix
+            dist/SHA256SUMS-*.txt
           if-no-files-found: error
 
       - name: Write release notes
@@ -78,11 +114,29 @@ jobs:
           EOF
 
       - name: Publish GitHub release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ inputs.tag }}
-          name: ${{ inputs.release_name != '' && inputs.release_name || inputs.tag }}
-          prerelease: ${{ inputs.prerelease }}
-          body_path: release-notes.md
-          files: dist/*.vsix
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ inputs.tag }}
+          RELEASE_NAME: ${{ inputs.release_name != '' && inputs.release_name || inputs.tag }}
+          PRERELEASE: ${{ inputs.prerelease }}
+        shell: bash
+        run: |
+          EXTRA_FLAGS=()
+          if [ "$PRERELEASE" = "true" ]; then
+            EXTRA_FLAGS+=(--prerelease)
+          fi
+
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            gh release edit "$TAG_NAME" \
+              --title "$RELEASE_NAME" \
+              --notes-file release-notes.md \
+              "${EXTRA_FLAGS[@]}"
+            gh release upload "$TAG_NAME" dist/*.vsix dist/SHA256SUMS-*.txt --clobber
+          else
+            gh release create "$TAG_NAME" \
+              --title "$RELEASE_NAME" \
+              --notes-file release-notes.md \
+              "${EXTRA_FLAGS[@]}" \
+              dist/*.vsix dist/SHA256SUMS-*.txt
+          fi
 

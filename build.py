@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import shutil
 import subprocess
@@ -82,6 +83,10 @@ def package_name() -> str:
     return f"{data['publisher']}.{data['name']}-{data['version']}.vsix"
 
 
+def hash_file_name() -> str:
+    return f"SHA256SUMS-{read_version()}.txt"
+
+
 def clean_outputs() -> None:
     for path in (OUT_DIR, DIST_DIR):
         if path.exists():
@@ -90,16 +95,23 @@ def clean_outputs() -> None:
 
 
 def ensure_deps_installed() -> None:
-    if not (ROOT / "node_modules").exists():
-        run([resolve_tool("npm"), "ci", "--no-audit", "--no-fund"])
+    required = [
+        ROOT / "node_modules" / "typescript" / "bin" / "tsc",
+        ROOT / "node_modules" / "esbuild" / "bin" / "esbuild",
+        ROOT / "node_modules" / "vscode-languageclient" / "package.json",
+    ]
+    if not all(path.exists() for path in required):
+        run([resolve_tool("npm"), "install", "--no-audit", "--no-fund"])
 
 
 def bundle_extension() -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    run([resolve_tool("npx"), "tsc", "-p", "./", "--noEmit"])
+    run([resolve_tool("npm"), "exec", "--", "tsc", "-p", "./", "--noEmit"])
     run(
         [
-            resolve_tool("npx"),
+            resolve_tool("npm"),
+            "exec",
+            "--",
             "esbuild",
             "src/extension.ts",
             "--bundle",
@@ -113,21 +125,52 @@ def bundle_extension() -> None:
     )
 
 
+def smoke_check() -> None:
+    package_data = read_json(PACKAGE_JSON)
+    required_files = [
+        ROOT / "README.md",
+        ROOT / "README.zh-CN.md",
+        ROOT / "language-configuration.json",
+        ROOT / "syntaxes" / "kinal.tmLanguage.json",
+        ROOT / "icon.png",
+        ROOT / package_data["main"],
+    ]
+    missing = [str(p) for p in required_files if not p.exists()]
+    if missing:
+        raise SystemExit("missing required files:\n" + "\n".join(missing))
+
+    contributes = package_data.get("contributes", {})
+    languages = contributes.get("languages", [])
+    if not languages:
+        raise SystemExit("package.json has no contributes.languages entries")
+    if not any(".kn" in lang.get("extensions", []) for lang in languages if isinstance(lang, dict)):
+        raise SystemExit("package.json does not register the .kn extension")
+
+
+def write_hash_file(vsix_path: Path) -> Path:
+    digest = hashlib.sha256(vsix_path.read_bytes()).hexdigest()
+    hash_path = DIST_DIR / hash_file_name()
+    hash_path.write_text(f"{digest}  {vsix_path.name}\n", encoding="utf-8")
+    print(f"[OK] wrote hash: {hash_path}")
+    return hash_path
+
+
 def cmd_deps(_: argparse.Namespace) -> int:
-    run([resolve_tool("npm"), "ci", "--no-audit", "--no-fund"])
+    run([resolve_tool("npm"), "install", "--no-audit", "--no-fund"])
     return 0
 
 
 def cmd_compile(_: argparse.Namespace) -> int:
     ensure_deps_installed()
     bundle_extension()
+    smoke_check()
     return 0
 
 
 def cmd_package(args: argparse.Namespace) -> int:
     if args.clean:
         clean_outputs()
-    run([resolve_tool("npm"), "ci", "--no-audit", "--no-fund"])
+    ensure_deps_installed()
     bundle_extension()
     DIST_DIR.mkdir(parents=True, exist_ok=True)
     out_path = DIST_DIR / package_name()
@@ -146,12 +189,22 @@ def cmd_package(args: argparse.Namespace) -> int:
             str(out_path),
         ]
     )
+    smoke_check()
+    write_hash_file(out_path)
     print(f"[OK] packaged: {out_path}")
     return 0
 
 
 def cmd_clean(_: argparse.Namespace) -> int:
     clean_outputs()
+    return 0
+
+
+def cmd_test(_: argparse.Namespace) -> int:
+    ensure_deps_installed()
+    bundle_extension()
+    smoke_check()
+    print("[OK] smoke test passed")
     return 0
 
 
@@ -175,6 +228,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("deps", help="install npm dependencies")
     sub.add_parser("compile", help="typecheck and bundle the extension")
+    sub.add_parser("test", help="run typecheck, bundle, and smoke checks")
     pkg = sub.add_parser("package", help="compile and package a VSIX")
     pkg.add_argument("--clean", action="store_true", help="remove old out/dist before packaging")
     sub.add_parser("clean", help="remove build outputs")
@@ -195,6 +249,8 @@ def main() -> int:
         return cmd_deps(args)
     if args.cmd == "compile":
         return cmd_compile(args)
+    if args.cmd == "test":
+        return cmd_test(args)
     if args.cmd == "package":
         return cmd_package(args)
     if args.cmd == "clean":

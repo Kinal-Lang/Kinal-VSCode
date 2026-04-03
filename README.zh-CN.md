@@ -26,10 +26,11 @@
 ```powershell
 python build.py deps
 python build.py compile
+python build.py test
 python build.py package --clean
 ```
 
-生成的 VSIX 位于 `dist/`。
+生成的 VSIX 位于 `dist/`，同时也会生成对应的 SHA-256 哈希文件。
 
 ## 版本
 
@@ -46,4 +47,5 @@ python build.py version bump major
 - `Version Get`：手动查看当前版本号，并写入 workflow summary。
 - `Version Set`：手动设置精确的 `x.y.z` 版本号，提交并推送到 `main`。
 - `Version Bump`：手动累加 `patch`、`minor` 或 `major` 版本号，提交并推送到 `main`。
-- `Release`：构建 VSIX、创建或更新 tag，并带可选的 Markdown 发布说明发布 GitHub Release。
+- `Release`：先跑 smoke 检查，再默认创建新 tag、构建 VSIX、生成 SHA-256 哈希，并带可选的 Markdown 发布说明发布 GitHub Release。
+  除非显式启用 `allow_retag`，否则不会覆盖已有 tag。

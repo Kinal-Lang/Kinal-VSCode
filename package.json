@@ -145,6 +145,7 @@
     "typecheck": "tsc -p ./ --noEmit",
     "deps": "python build.py deps",
     "build": "python build.py compile",
+    "test": "python build.py test",
     "package": "python build.py package",
     "clean": "python build.py clean"
   },
