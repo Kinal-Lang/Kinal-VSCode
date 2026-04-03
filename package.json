@@ -4,11 +4,16 @@
   "description": "Language support for Kinal (.kn, .kinal)",
   "version": "0.2.10",
   "publisher": "kinal",
+  "icon": "icon.png",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/Kinal-Lang/Kinal-VSCode.git"
   },
-  "homepage": "https://github.com/Kinal-Lang/Kinal-VSCode",
+  "homepage": "https://kinal.org",
+  "bugs": {
+    "url": "https://github.com/Kinal-Lang/Kinal-VSCode/issues"
+  },
   "engines": {
     "vscode": "^1.80.0"
   },
@@ -16,6 +21,20 @@
     "Programming Languages",
     "Formatters"
   ],
+  "keywords": [
+    "kinal",
+    "language",
+    "compiler",
+    "lsp",
+    "formatter",
+    "llvm",
+    "vm",
+    "ffi"
+  ],
+  "galleryBanner": {
+    "color": "#11161d",
+    "theme": "dark"
+  },
   "activationEvents": [
     "onLanguage:kinal",
     "onCommand:kinal.runFile",

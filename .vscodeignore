@@ -4,3 +4,4 @@ src/**
 tsconfig.json
 build.py
 __pycache__/
+.github/

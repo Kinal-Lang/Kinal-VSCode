@@ -8,6 +8,12 @@ This extension provides:
 - LSP client wiring for `kinal-lsp-server`
 - `Kinal: Compile And Run` command and editor button
 
+Project site:
+- [kinal.org](https://kinal.org)
+
+Repository:
+- [Kinal-Lang/Kinal-VSCode](https://github.com/Kinal-Lang/Kinal-VSCode)
+
 ## Settings
 
 - `kinal.path`: path to `kinal.exe`

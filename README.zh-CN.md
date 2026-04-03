@@ -8,6 +8,12 @@
 - `kinal-lsp-server` 的 LSP 客户端接入
 - `Kinal: Compile And Run` 命令和编辑器按钮
 
+项目站点：
+- [kinal.org](https://kinal.org)
+
+仓库地址：
+- [Kinal-Lang/Kinal-VSCode](https://github.com/Kinal-Lang/Kinal-VSCode)
+
 ## 设置项
 
 - `kinal.path`：`kinal.exe` 或 `kinal` 编译器路径
