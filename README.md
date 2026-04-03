@@ -14,3 +14,12 @@ This extension provides:
 - `kinal.defaultLinker`: `lld | zig | msvc`
 - `kinal.linkerPath`: optional linker executable path
 - `kinal.serverPath`: path to LSP server executable
+
+## Build
+
+```powershell
+python build.py deps
+python build.py package
+```
+
+The generated VSIX is written to `dist/`.

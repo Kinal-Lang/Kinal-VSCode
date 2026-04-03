@@ -14,3 +14,12 @@
 - `kinal.defaultLinker`：默认链接器，`lld | zig | msvc`
 - `kinal.linkerPath`：可选的显式链接器路径
 - `kinal.serverPath`：LSP 服务端可执行文件路径
+
+## 构建
+
+```powershell
+python build.py deps
+python build.py package
+```
+
+生成的 VSIX 会输出到 `dist/`。

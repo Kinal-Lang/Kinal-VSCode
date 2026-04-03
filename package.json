@@ -4,6 +4,11 @@
   "description": "Language support for Kinal (.kn, .kinal)",
   "version": "0.2.10",
   "publisher": "kinal",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Kinal-Lang/Kinal-VSCode.git"
+  },
+  "homepage": "https://github.com/Kinal-Lang/Kinal-VSCode",
   "engines": {
     "vscode": "^1.80.0"
   },
@@ -99,7 +104,11 @@
   },
   "scripts": {
     "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./"
+    "watch": "tsc -watch -p ./",
+    "deps": "python build.py deps",
+    "build": "python build.py compile",
+    "package": "python build.py package",
+    "clean": "python build.py clean"
   },
   "dependencies": {
     "vscode-languageclient": "^9.0.1"

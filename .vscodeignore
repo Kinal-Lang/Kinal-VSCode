@@ -2,3 +2,5 @@
 .vscode-test/**
 src/**
 tsconfig.json
+build.py
+__pycache__/
