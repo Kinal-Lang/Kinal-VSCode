@@ -2,7 +2,7 @@
   "name": "kinal",
   "displayName": "Kinal",
   "description": "Language support for Kinal (.kn, .kinal)",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "publisher": "kinal",
   "icon": "icon.png",
   "license": "MIT",
