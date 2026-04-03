@@ -1,0 +1,69 @@
+name: Version Bump
+
+on:
+  workflow_dispatch:
+    inputs:
+      part:
+        description: "Version component to bump"
+        required: true
+        default: "patch"
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  version-bump:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Configure Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump version
+        shell: bash
+        run: |
+          VERSION="$(python build.py version bump "${{ inputs.part }}")"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Commit and push
+        shell: bash
+        run: |
+          git add package.json package-lock.json
+          if git diff --cached --quiet; then
+            echo "No version changes to commit."
+          else
+            git commit -m "Bump VSCode extension version to $VERSION"
+            git push origin HEAD:main
+          fi
+
+      - name: Write summary
+        shell: bash
+        run: |
+          {
+            echo "## Version bumped"
+            echo
+            echo "Part: \`${{ inputs.part }}\`"
+            echo
+            echo "New version: \`$VERSION\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+

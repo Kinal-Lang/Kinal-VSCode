@@ -16,9 +16,16 @@ on:
         required: false
         default: false
         type: boolean
+      release_notes:
+        description: "Optional markdown release notes body"
+        required: false
+        type: string
 
 permissions:
   contents: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
   release:
@@ -26,19 +33,19 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: "20"
+          node-version: "22"
           cache: "npm"
 
       - name: Configure Git identity
@@ -57,11 +64,18 @@ jobs:
         run: python build.py package --clean
 
       - name: Upload workflow artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: kinal-vscode-vsix-${{ inputs.tag }}
           path: dist/*.vsix
           if-no-files-found: error
+
+      - name: Write release notes
+        shell: bash
+        run: |
+          cat > release-notes.md <<'EOF'
+          ${{ inputs.release_notes }}
+          EOF
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
@@ -69,4 +83,6 @@ jobs:
           tag_name: ${{ inputs.tag }}
           name: ${{ inputs.release_name != '' && inputs.release_name || inputs.tag }}
           prerelease: ${{ inputs.prerelease }}
+          body_path: release-notes.md
           files: dist/*.vsix
+

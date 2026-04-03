@@ -1,0 +1,35 @@
+name: Version Get
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  version-get:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Show version
+        shell: bash
+        run: |
+          VERSION="$(python build.py version get)"
+          echo "Current version: $VERSION"
+          {
+            echo "## Kinal VSCode version"
+            echo
+            echo "\`$VERSION\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+

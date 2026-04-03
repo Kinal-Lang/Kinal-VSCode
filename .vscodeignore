@@ -5,3 +5,5 @@ tsconfig.json
 build.py
 __pycache__/
 .github/
+node_modules/**
+package-lock.json

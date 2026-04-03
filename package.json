@@ -45,8 +45,14 @@
     "languages": [
       {
         "id": "kinal",
-        "aliases": ["Kinal", "kinal"],
-        "extensions": [".kn", ".kinal"],
+        "aliases": [
+          "Kinal",
+          "kinal"
+        ],
+        "extensions": [
+          ".kn",
+          ".kinal"
+        ],
         "configuration": "./language-configuration.json"
       }
     ],
@@ -82,7 +88,11 @@
         },
         "kinal.defaultLinker": {
           "type": "string",
-          "enum": ["lld", "zig", "msvc"],
+          "enum": [
+            "lld",
+            "zig",
+            "msvc"
+          ],
           "default": "lld",
           "description": "Default linker passed to --linker."
         },
@@ -98,13 +108,21 @@
         },
         "kinal.compilerLanguage": {
           "type": "string",
-          "enum": ["en", "auto", "zh"],
+          "enum": [
+            "en",
+            "auto",
+            "zh"
+          ],
           "default": "auto",
           "description": "Diagnostic language used by the kinal compiler when compiling from the editor."
         },
         "kinal.diagnosticsLanguage": {
           "type": "string",
-          "enum": ["en", "auto", "zh"],
+          "enum": [
+            "en",
+            "auto",
+            "zh"
+          ],
           "default": "en",
           "description": "Diagnostics language used by the Kinal language server (LSP)."
         },
@@ -122,8 +140,9 @@
     }
   },
   "scripts": {
-    "compile": "tsc -p ./",
+    "compile": "python build.py compile",
     "watch": "tsc -watch -p ./",
+    "typecheck": "tsc -p ./ --noEmit",
     "deps": "python build.py deps",
     "build": "python build.py compile",
     "package": "python build.py package",
@@ -135,6 +154,7 @@
   "devDependencies": {
     "@types/node": "^20.11.0",
     "@types/vscode": "^1.80.0",
+    "esbuild": "^0.25.3",
     "typescript": "^5.5.4"
   }
 }

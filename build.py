@@ -11,6 +11,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 OUT_DIR = ROOT / "out"
 DIST_DIR = ROOT / "dist"
+PACKAGE_JSON = ROOT / "package.json"
+PACKAGE_LOCK_JSON = ROOT / "package-lock.json"
 
 
 def run(cmd: list[str], *, cwd: Path = ROOT) -> None:
@@ -25,8 +27,58 @@ def resolve_tool(name: str) -> str:
     return tool
 
 
+def read_json(path: Path) -> dict:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def write_json(path: Path, data: dict) -> None:
+    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def read_version() -> str:
+    return str(read_json(PACKAGE_JSON)["version"])
+
+
+def set_version(version: str) -> None:
+    parts = version.split(".")
+    if len(parts) != 3 or not all(p.isdigit() for p in parts):
+        raise SystemExit(f"invalid version '{version}', expected x.y.z")
+
+    package_data = read_json(PACKAGE_JSON)
+    package_data["version"] = version
+    write_json(PACKAGE_JSON, package_data)
+
+    if PACKAGE_LOCK_JSON.exists():
+        lock_data = read_json(PACKAGE_LOCK_JSON)
+        lock_data["version"] = version
+        packages = lock_data.get("packages")
+        if isinstance(packages, dict) and "" in packages and isinstance(packages[""], dict):
+            packages[""]["version"] = version
+        write_json(PACKAGE_LOCK_JSON, lock_data)
+
+    print(f"[OK] version set to {version}")
+
+
+def bump_version(kind: str) -> str:
+    major, minor, patch = (int(x) for x in read_version().split("."))
+    if kind == "major":
+        major += 1
+        minor = 0
+        patch = 0
+    elif kind == "minor":
+        minor += 1
+        patch = 0
+    elif kind == "patch":
+        patch += 1
+    else:
+        raise SystemExit(f"unknown bump kind: {kind}")
+    version = f"{major}.{minor}.{patch}"
+    set_version(version)
+    return version
+
+
 def package_name() -> str:
-    data = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
+    data = read_json(PACKAGE_JSON)
     return f"{data['publisher']}.{data['name']}-{data['version']}.vsix"
 
 
@@ -37,13 +89,38 @@ def clean_outputs() -> None:
             print(f"[OK] removed {path}")
 
 
+def ensure_deps_installed() -> None:
+    if not (ROOT / "node_modules").exists():
+        run([resolve_tool("npm"), "ci", "--no-audit", "--no-fund"])
+
+
+def bundle_extension() -> None:
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    run([resolve_tool("npx"), "tsc", "-p", "./", "--noEmit"])
+    run(
+        [
+            resolve_tool("npx"),
+            "esbuild",
+            "src/extension.ts",
+            "--bundle",
+            "--platform=node",
+            "--format=cjs",
+            "--target=node18",
+            "--external:vscode",
+            "--outfile=out/extension.js",
+            "--sourcemap",
+        ]
+    )
+
+
 def cmd_deps(_: argparse.Namespace) -> int:
     run([resolve_tool("npm"), "ci", "--no-audit", "--no-fund"])
     return 0
 
 
 def cmd_compile(_: argparse.Namespace) -> int:
-    run([resolve_tool("npm"), "run", "compile"])
+    ensure_deps_installed()
+    bundle_extension()
     return 0
 
 
@@ -51,7 +128,7 @@ def cmd_package(args: argparse.Namespace) -> int:
     if args.clean:
         clean_outputs()
     run([resolve_tool("npm"), "ci", "--no-audit", "--no-fund"])
-    run([resolve_tool("npm"), "run", "compile"])
+    bundle_extension()
     DIST_DIR.mkdir(parents=True, exist_ok=True)
     out_path = DIST_DIR / package_name()
     if out_path.exists():
@@ -78,14 +155,37 @@ def cmd_clean(_: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_version_get(_: argparse.Namespace) -> int:
+    print(read_version())
+    return 0
+
+
+def cmd_version_set(args: argparse.Namespace) -> int:
+    set_version(args.version)
+    return 0
+
+
+def cmd_version_bump(args: argparse.Namespace) -> int:
+    print(bump_version(args.kind))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(description="Build helper for the Kinal VSCode extension")
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("deps", help="install npm dependencies")
-    sub.add_parser("compile", help="compile the extension")
+    sub.add_parser("compile", help="typecheck and bundle the extension")
     pkg = sub.add_parser("package", help="compile and package a VSIX")
     pkg.add_argument("--clean", action="store_true", help="remove old out/dist before packaging")
     sub.add_parser("clean", help="remove build outputs")
+
+    ver = sub.add_parser("version", help="inspect or update the extension version")
+    ver_sub = ver.add_subparsers(dest="version_cmd", required=True)
+    ver_sub.add_parser("get", help="print current x.y.z version")
+    ver_set = ver_sub.add_parser("set", help="set exact version")
+    ver_set.add_argument("version", help="new version in x.y.z format")
+    ver_bump = ver_sub.add_parser("bump", help="bump semantic version")
+    ver_bump.add_argument("kind", choices=["major", "minor", "patch"], help="which component to bump")
     return ap
 
 
@@ -99,6 +199,13 @@ def main() -> int:
         return cmd_package(args)
     if args.cmd == "clean":
         return cmd_clean(args)
+    if args.cmd == "version":
+        if args.version_cmd == "get":
+            return cmd_version_get(args)
+        if args.version_cmd == "set":
+            return cmd_version_set(args)
+        if args.version_cmd == "bump":
+            return cmd_version_bump(args)
     raise SystemExit(f"unknown command: {args.cmd}")
 
 
