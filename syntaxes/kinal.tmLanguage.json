@@ -1,0 +1,101 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Kinal",
+  "scopeName": "source.kinal",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#keywords" },
+    { "include": "#types" },
+    { "include": "#numbers" },
+    { "include": "#identifiers" },
+    { "include": "#punctuation" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        { "name": "comment.line.double-slash.kinal", "match": "//.*$" },
+        {
+          "name": "comment.block.kinal",
+          "begin": "/\\*",
+          "end": "\\*/"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "constant.character.kinal",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            { "name": "constant.character.escape.kinal", "match": "\\\\." }
+          ]
+        },
+        {
+          "name": "string.quoted.double.kinal",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            { "name": "constant.character.escape.kinal", "match": "\\\\." }
+          ]
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.kinal",
+          "match": "(?<!\\.)\\b(Unit|Get|If|Else|For|While|Break|Continue|Return|Throw|Try|Catch|Await|Block|Record|Jump|Is|Meta|On|Keep|Repeatable)\\b"
+        },
+        {
+          "name": "storage.modifier.kinal",
+          "match": "(?<!\\.)\\b(Public|Private|Protected|Internal|Static|Async|Extern|Unsafe|Safe|Trusted|Abstract|Virtual|Override|Sealed|Const|Var)\\b"
+        },
+        {
+          "name": "constant.language.meta-target.kinal",
+          "match": "@(?:function|extern_function|delegate_function|class|struct|enum|interface|method|field|source|compile|runtime)\\b"
+        },
+        {
+          "name": "storage.type.declaration.kinal",
+          "match": "(?<!\\.)\\b(Function|Class|Struct|Enum|Interface|Constructor)\\b"
+        }
+      ]
+    },
+    "types": {
+      "patterns": [
+        {
+          "name": "support.type.primitive.kinal",
+          "match": "(?<!\\.)\\b(void|bool|byte|char|int|float|f16|f32|f64|f128|i8|i16|i32|i64|u8|u16|u32|u64|isize|usize|string|any|null)\\b"
+        }
+      ]
+    },
+    "identifiers": {
+      "patterns": [
+        {
+          "name": "entity.name.function.kinal",
+          "match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b(?=\\s*\\()"
+        },
+        {
+          "name": "variable.other.kinal",
+          "match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b"
+        }
+      ]
+    },
+    "punctuation": {
+      "patterns": [
+        { "name": "punctuation.section.group.begin.kinal", "match": "\\(" },
+        { "name": "punctuation.section.group.end.kinal", "match": "\\)" },
+        { "name": "punctuation.section.braces.begin.kinal", "match": "\\{" },
+        { "name": "punctuation.section.braces.end.kinal", "match": "\\}" },
+        { "name": "punctuation.section.brackets.begin.kinal", "match": "\\[" },
+        { "name": "punctuation.section.brackets.end.kinal", "match": "\\]" }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        { "name": "constant.numeric.kinal", "match": "\\b0[xX][0-9a-fA-F]+\\b|\\b\\d+(?:\\.\\d+)?(?:[fF])?\\b" }
+      ]
+    }
+  }
+}

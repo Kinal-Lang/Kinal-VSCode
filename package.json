@@ -1,0 +1,112 @@
+{
+  "name": "kinal",
+  "displayName": "Kinal",
+  "description": "Language support for Kinal (.kn, .kinal)",
+  "version": "0.2.10",
+  "publisher": "kinal",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Formatters"
+  ],
+  "activationEvents": [
+    "onLanguage:kinal",
+    "onCommand:kinal.runFile",
+    "onCommand:editor.action.formatDocument"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "kinal",
+        "aliases": ["Kinal", "kinal"],
+        "extensions": [".kn", ".kinal"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "kinal",
+        "scopeName": "source.kinal",
+        "path": "./syntaxes/kinal.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "kinal.runFile",
+        "title": "Kinal: Compile and Run"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "kinal.runFile",
+          "when": "resourceExtname == .kn || resourceExtname == .kinal",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Kinal",
+      "properties": {
+        "kinal.path": {
+          "type": "string",
+          "default": "kinal",
+          "description": "Path to kinal compiler executable."
+        },
+        "kinal.defaultLinker": {
+          "type": "string",
+          "enum": ["lld", "zig", "msvc"],
+          "default": "lld",
+          "description": "Default linker passed to --linker."
+        },
+        "kinal.linkerPath": {
+          "type": "string",
+          "default": "",
+          "description": "Optional explicit linker executable path passed to --linker-path."
+        },
+        "kinal.serverPath": {
+          "type": "string",
+          "default": "kinal-lsp-server",
+          "description": "Path to Kinal LSP server executable."
+        },
+        "kinal.compilerLanguage": {
+          "type": "string",
+          "enum": ["en", "auto", "zh"],
+          "default": "auto",
+          "description": "Diagnostic language used by the kinal compiler when compiling from the editor."
+        },
+        "kinal.diagnosticsLanguage": {
+          "type": "string",
+          "enum": ["en", "auto", "zh"],
+          "default": "en",
+          "description": "Diagnostics language used by the Kinal language server (LSP)."
+        },
+        "kinal.localeFile": {
+          "type": "string",
+          "default": "",
+          "description": "Optional locale JSON file for diagnostics (mapped by diagnostic code)."
+        }
+      }
+    },
+    "configurationDefaults": {
+      "[kinal]": {
+        "editor.defaultFormatter": "kinal.kinal"
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.80.0",
+    "typescript": "^5.5.4"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "kinal.displayName": "Kinal",
+  "kinal.description": "Language support for Kinal (.kn)",
+  "kinal.command.runFile": "Kinal: Compile And Run",
+  "kinal.configuration.title": "Kinal",
+  "kinal.configuration.path": "Path to kinal compiler executable.",
+  "kinal.configuration.defaultLinker": "Default linker passed to --linker.",
+  "kinal.configuration.linkerPath": "Optional explicit linker executable path passed to --linker-path.",
+  "kinal.configuration.serverPath": "Path to Kinal LSP server executable.",
+  "kinal.configuration.diagnosticsLanguage": "Diagnostics language used by the Kinal language server.",
+  "kinal.configuration.localeFile": "Optional locale JSON file for diagnostics (mapped by diagnostic code)."
+}
+
