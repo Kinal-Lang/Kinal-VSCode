@@ -1,8 +1,8 @@
 {
   "name": "kinal",
   "displayName": "Kinal",
-  "description": "Language support for Kinal (.kn, .kinal)",
-  "version": "0.2.11",
+  "description": "Language support for Kinal (.kn, .kinal, .knproj)",
+  "version": "0.4.0",
   "publisher": "kinal",
   "icon": "icon.png",
   "license": "MIT",
@@ -23,6 +23,7 @@
   ],
   "keywords": [
     "kinal",
+    "knproj",
     "language",
     "compiler",
     "lsp",
@@ -37,7 +38,9 @@
   },
   "activationEvents": [
     "onLanguage:kinal",
+    "onLanguage:knproj",
     "onCommand:kinal.runFile",
+    "onCommand:kinal.newProjectFile",
     "onCommand:editor.action.formatDocument"
   ],
   "main": "./out/extension.js",
@@ -54,6 +57,17 @@
           ".kinal"
         ],
         "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "knproj",
+        "aliases": [
+          "Kinal Project",
+          "knproj"
+        ],
+        "extensions": [
+          ".knproj"
+        ],
+        "configuration": "./knproj-language-configuration.json"
       }
     ],
     "grammars": [
@@ -61,12 +75,21 @@
         "language": "kinal",
         "scopeName": "source.kinal",
         "path": "./syntaxes/kinal.tmLanguage.json"
+      },
+      {
+        "language": "knproj",
+        "scopeName": "source.knproj",
+        "path": "./syntaxes/knproj.tmLanguage.json"
       }
     ],
     "commands": [
       {
         "command": "kinal.runFile",
         "title": "Kinal: Compile and Run"
+      },
+      {
+        "command": "kinal.newProjectFile",
+        "title": "Kinal: New Project File"
       }
     ],
     "menus": {
@@ -74,6 +97,13 @@
         {
           "command": "kinal.runFile",
           "when": "resourceExtname == .kn || resourceExtname == .kinal",
+          "group": "navigation"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "kinal.newProjectFile",
+          "when": "explorerResourceIsFolder",
           "group": "navigation"
         }
       ]

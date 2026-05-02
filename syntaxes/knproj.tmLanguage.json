@@ -1,0 +1,108 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Kinal Project",
+  "scopeName": "source.knproj",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#section-names" },
+    { "include": "#keywords" },
+    { "include": "#fields" },
+    { "include": "#constants" },
+    { "include": "#numbers" },
+    { "include": "#punctuation" },
+    { "include": "#identifiers" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        { "name": "comment.line.double-slash.knproj", "match": "//.*$" },
+        {
+          "name": "comment.block.knproj",
+          "begin": "/\\*",
+          "end": "\\*/"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.knproj",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            { "name": "constant.character.escape.knproj", "match": "\\\\." }
+          ]
+        }
+      ]
+    },
+    "section-names": {
+      "patterns": [
+        {
+          "match": "\\b(Project|Profile)\\s+(\"(?:\\\\.|[^\"])*\"|[A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": { "name": "keyword.control.knproj" },
+            "2": { "name": "entity.name.type.knproj" }
+          }
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.knproj",
+          "match": "(?<!\\.)\\b(Project|Profile|Packages|Source|Build|Link|Lsp)\\b"
+        },
+        {
+          "name": "constant.language.boolean.knproj",
+          "match": "(?<!\\.)\\b(true|false)\\b"
+        }
+      ]
+    },
+    "fields": {
+      "patterns": [
+        {
+          "name": "variable.other.property.knproj",
+          "match": "(?<!\\.)\\b(DefaultProfile|Roots|OfficialRoots|Entry|AutoDiscovery|Backend|Environment|Runtime|Panic|Target|Output|EntrySymbol|Linker|LinkerPath|Superloop|Script|NoCRT|NoDefaultLibs|LibDirs|Libs|LinkFiles|LinkArgs|LinkRoots|Profile)\\b(?=\\s*=)"
+        }
+      ]
+    },
+    "constants": {
+      "patterns": [
+        {
+          "name": "support.constant.knproj",
+          "match": "(?<!\\.)\\b(Native|VM|Hosted|Freestanding|None|Alloc|GC|Trap|Loop|LLD|Zig|MSVC)\\b"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.knproj",
+          "match": "\\b0[xX][0-9a-fA-F]+\\b|\\b\\d+\\b"
+        }
+      ]
+    },
+    "punctuation": {
+      "patterns": [
+        { "name": "keyword.operator.assignment.knproj", "match": "=" },
+        { "name": "punctuation.terminator.statement.knproj", "match": ";" },
+        { "name": "punctuation.separator.sequence.knproj", "match": "," },
+        { "name": "punctuation.section.braces.begin.knproj", "match": "\\{" },
+        { "name": "punctuation.section.braces.end.knproj", "match": "\\}" },
+        { "name": "punctuation.section.brackets.begin.knproj", "match": "\\[" },
+        { "name": "punctuation.section.brackets.end.knproj", "match": "\\]" },
+        { "name": "punctuation.section.group.begin.knproj", "match": "\\(" },
+        { "name": "punctuation.section.group.end.knproj", "match": "\\)" }
+      ]
+    },
+    "identifiers": {
+      "patterns": [
+        {
+          "name": "variable.other.knproj",
+          "match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b"
+        }
+      ]
+    }
+  }
+}

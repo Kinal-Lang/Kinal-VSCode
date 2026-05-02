@@ -400,15 +400,19 @@ export async function activate(context: vscode.ExtensionContext) {
     const stdlibProvider = vscode.workspace.registerTextDocumentContentProvider("kinal-stdlib", {
         provideTextDocumentContent: async (uri) => {
             const p = uri.path || "";
-            const mod = p.replace(/^\/+/, "").replace(/\.kn$/i, "");
+            const isKlib = p.startsWith("/klib/");
+            // For klib URIs, keep the full path (including .kn); for stubs, strip .kn suffix.
+            const mod = isKlib
+                ? p.replace(/^\/+/, "")
+                : p.replace(/^\/+/, "").replace(/\.kn$/i, "");
             if (!client) {
                 return `// Language server not ready.\n`;
             }
             try {
                 const text = await client.sendRequest<string>("kinal/stdlibText", { module: mod });
-                return text || `// Unknown stdlib module: ${mod}\n`;
+                return text || (isKlib ? `// Source not available: ${mod}\n` : `// Unknown stdlib module: ${mod}\n`);
             } catch (e) {
-                return `// Failed to load stdlib module: ${mod}\n// ${String(e)}\n`;
+                return `// Failed to load module: ${mod}\n// ${String(e)}\n`;
             }
         }
     });
