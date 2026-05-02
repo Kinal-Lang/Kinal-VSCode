@@ -113,7 +113,7 @@ jobs:
           ${{ inputs.release_notes }}
           EOF
 
-      - name: Publish GitHub release
+      - name: Create draft GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
           TAG_NAME: ${{ inputs.tag }}
@@ -121,7 +121,7 @@ jobs:
           PRERELEASE: ${{ inputs.prerelease }}
         shell: bash
         run: |
-          EXTRA_FLAGS=()
+          EXTRA_FLAGS=(--draft)
           if [ "$PRERELEASE" = "true" ]; then
             EXTRA_FLAGS+=(--prerelease)
           fi
