@@ -162,6 +162,19 @@ function getLocaleFile(): string {
     return v.trim();
 }
 
+function fileExtLower(file: string): string {
+    return path.extname(file).toLowerCase();
+}
+
+function isKinalSourceFile(file: string): boolean {
+    const ext = fileExtLower(file);
+    return ext === ".kn" || ext === ".kinal";
+}
+
+function isKinalProjectFile(file: string): boolean {
+    return fileExtLower(file) === ".knproj";
+}
+
 function ensureRunTerminal(cwd: string): vscode.Terminal {
     if (!runTerminal) {
         // Reuse an existing terminal if one is already open (e.g. after extension reload).
@@ -267,10 +280,30 @@ async function formatDocumentWithCompiler(context: vscode.ExtensionContext, docu
     return [vscode.TextEdit.replace(fullRange, result.stdout)];
 }
 
+async function compileAndRunProjectFile(context: vscode.ExtensionContext, file: string) {
+    const projectDir = path.dirname(file);
+    const compiler = resolveCompilerPath(context);
+    const lang = resolveCompilerLanguage();
+    const args: string[] = ["run", "--project", projectDir, "--lang", lang];
+
+    const ch = out();
+    ch.clear();
+    ch.appendLine([compiler, ...args].join(" "));
+
+    const rc = await runProcess(compiler, args, projectDir);
+    if (rc !== 0) {
+        void vscode.commands.executeCommand("workbench.actions.view.problems");
+        vscode.window.showErrorMessage("Project run failed.");
+        return;
+    }
+
+    ch.show(true);
+}
+
 async function compileAndRunActiveFile(context: vscode.ExtensionContext) {
     const editor = vscode.window.activeTextEditor;
-    if (!editor || editor.document.languageId !== "kinal") {
-        vscode.window.showErrorMessage("Active editor is not a Kinal file.");
+    if (!editor) {
+        vscode.window.showErrorMessage("No active editor.");
         return;
     }
 
@@ -279,6 +312,16 @@ async function compileAndRunActiveFile(context: vscode.ExtensionContext) {
     }
 
     const file = editor.document.uri.fsPath;
+    if (isKinalProjectFile(file)) {
+        await compileAndRunProjectFile(context, file);
+        return;
+    }
+
+    if (editor.document.languageId !== "kinal" || !isKinalSourceFile(file)) {
+        vscode.window.showErrorMessage("Active editor is not a Kinal source file.");
+        return;
+    }
+
     const parsed = path.parse(file);
     const suffix = isWindows() ? ".exe" : "";
     const output = path.join(parsed.dir, `${parsed.name}${suffix}`);
@@ -288,7 +331,7 @@ async function compileAndRunActiveFile(context: vscode.ExtensionContext) {
     const linkerPath = getLinkerPath();
     const lang = resolveCompilerLanguage();
 
-    const args: string[] = [file, "-o", output, "--linker", linker];
+    const args: string[] = ["build", file, "-o", output, "--linker", linker];
     if (linkerPath.trim().length > 0) {
         args.push("--linker-path", linkerPath);
     }
